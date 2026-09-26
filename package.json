@@ -10,9 +10,12 @@
     "build": "turbo run build",
     "dev": "turbo run dev",
     "dev:web": "pnpm --filter @intentguard/web dev",
+    "dev:server": "pnpm --filter @intentguard/server dev",
     "start:web": "pnpm --filter @intentguard/web start",
-    "test": "pnpm --filter @intentguard/core test",
+    "start:server": "pnpm --filter @intentguard/server start",
+    "test": "pnpm --filter @intentguard/core --filter @intentguard/server test",
     "cli": "node packages/cli/dist/index.js",
+    "agents:setup": "node packages/cli/dist/index.js agents setup",
     "lint": "turbo run lint",
     "clean": "turbo run clean && rm -rf node_modules"
   },

@@ -52,7 +52,7 @@ mcp
   .command('setup')
   .description('Configure MCP for detected agents')
   .option('--all', 'Configure for all known agents')
-  .option('--agent <name>', 'Configure for specific agent (e.g. cursor, claude)')
+  .option('--agent <name>', 'Configure for specific agent (claude, cursor, codex, bob)')
   .action(mcpSetupCommand);
 
 const rules = program.command('rules').description('Manage agent rules');
@@ -61,5 +61,15 @@ rules
   .description('Generate agent rule files')
   .option('--agent <name>', 'Generate rules for specific agent')
   .action(rulesGenerateCommand);
+
+const agents = program.command('agents').description('Manage AI coding agent integrations');
+agents
+  .command('setup')
+  .description('Write MCP config and rule files for every supported agent (or one with --agent)')
+  .option('--agent <name>', 'Set up a single agent (claude, cursor, codex, bob)')
+  .action(async (options: { agent?: string }) => {
+    await mcpSetupCommand(options);
+    await rulesGenerateCommand(options);
+  });
 
 program.parse(process.argv);

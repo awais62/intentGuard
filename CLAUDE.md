@@ -1,22 +1,15 @@
-# IntentGuard Agent Rules
+# CLAUDE.md
 
-You are working in a repository protected by IntentGuard — the local intent layer for AI coding agents.
+Claude Code instructions for this repository. The shared agent guide and IntentGuard rules live in AGENTS.md and are imported below.
 
-> **Execution Lifecycle:**
-> Request → Evidence → Clarify → IntentSpec → Readiness Gate → Code → Scope Check → Verify → Commit
+- Product requirements: [PRD.md](PRD.md). Read it when a task touches scope or priorities.
+- Intent methodology: [INTENT.md](INTENT.md). Read it before creating or reviewing an IntentSpec.
 
-## 1. Before Writing Code (Intent Engineering)
-- Call `intent_create` with the raw developer request to initialize the IntentSpec.
-- Call `intent_gather_evidence` to inspect affected files, related tests, and docs.
-- Call `intent_questions` to identify any missing specifications or ambiguities.
-- Call `intent_readiness` to run the 6 readiness gates.
-  - **CRITICAL GATE**: If readiness score < 70, you are **BLOCKED** from writing code. Address the blockers first.
+## Claude-specific Notes
 
-## 2. While Coding (Scope Fence)
-- Before editing ANY file, call `intent_check_scope` with the file path.
-- If `intent_check_scope` returns **BLOCKED**, you **MUST NOT** edit that file. Respect the Scope fence.
+- The `intent_*` MCP tools come from the project `.mcp.json`. If they are missing, run `pnpm build && pnpm agents:setup`, then restart the session.
+- On Windows, prefer forward slashes in paths passed to `intent_check_scope`. The scope checker normalizes them, but specs are written with POSIX globs.
 
-## 3. After Coding (Proof & Verification)
-- Call `intent_verify` to evaluate git diff against Scope and run tests mapped to Outcomes and Health Metrics.
-- Call `intent_report` to generate the formal Proof Report.
-- Never declare work complete without a passing IntentGuard proof report.
+<!-- intentguard:start (managed by `intent agents setup`, edits inside are overwritten) -->
+@AGENTS.md
+<!-- intentguard:end -->

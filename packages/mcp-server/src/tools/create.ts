@@ -1,14 +1,6 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
-import { 
-  SpecStore, 
-  gatherEvidence, 
-  resolveProvider, 
-  generateSpecId, 
-  generateTimestamp,
-  loadConfig,
-  type IntentSpec
-} from '@intentguard/core';
+import { draftSpec } from '@intentguard/core';
 
 /**
  * Registers the intent_create tool on the MCP server.
@@ -25,58 +17,7 @@ export function registerCreateTool(server: McpServer, defaultRootDir: string): v
     },
     async ({ request, projectPath }) => {
       try {
-        const rootDir = projectPath || defaultRootDir;
-        const store = new SpecStore(rootDir);
-        await store.init();
-
-        const evidence = await gatherEvidence(rootDir, request);
-        
-        const specId = generateSpecId();
-        const now = generateTimestamp();
-
-        const config = await loadConfig(rootDir);
-        const provider = resolveProvider(config);
-
-        let draftResult: Partial<IntentSpec> = {};
-        if (provider) {
-          try {
-            draftResult = await provider.draft(request, evidence);
-          } catch (err) {
-            console.error('[intentguard] provider.draft error:', err);
-          }
-        }
-
-        const spec: IntentSpec = {
-          id: specId,
-          status: 'draft',
-          objective: draftResult.objective || request,
-          outcomes: draftResult.outcomes || [],
-          evidence: [
-            {
-              id: 'ev-1',
-              type: 'request',
-              excerpt: request,
-              anchors: ['objective']
-            },
-            ...evidence.affectedFiles.map((f: string, i: number) => ({
-              id: `ev-file-${i}`,
-              type: 'observation' as const,
-              excerpt: `Gathered file evidence: ${f}`,
-              anchors: ['objective']
-            }))
-          ],
-          scope: draftResult.scope || { inScope: evidence.affectedFiles, outOfScope: [] },
-          edgeCases: draftResult.edgeCases || [],
-          constraints: draftResult.constraints || [],
-          healthMetrics: draftResult.healthMetrics || [],
-          verification: draftResult.verification || [],
-          createdAt: now,
-          updatedAt: now,
-          rawRequest: request
-        };
-
-        await store.save(spec);
-        await store.setActive(spec.id);
+        const spec = await draftSpec(projectPath || defaultRootDir, request);
 
         return {
           content: [{ type: 'text', text: JSON.stringify(spec, null, 2) }]

@@ -24,9 +24,52 @@ cd IntentGuard
 # Install dependencies across all packages
 pnpm install
 
-# Build all packages (@intentguard/core, mcp-server, cli, web)
+# Build all packages (@intentguard/core, server, mcp-server, cli, web)
 pnpm run build
+
+# Wire IntentGuard into your AI coding agents (Claude Code, Cursor, Codex, IBM Bob)
+pnpm run agents:setup
 ```
+
+> **Run `agents:setup` after every fresh clone.** Agent MCP configs (`.mcp.json`, `.cursor/`, `.codex/`, `.bob/`) are generated from one shared definition and are git-ignored, so they are not in the repository. See [Configuring AI Agents](#configuring-ai-agents).
+
+### 3. Project Docs
+
+- [PRD.md](PRD.md): product requirements, scope, and milestones
+- [INTENT.md](INTENT.md): the IntentSpec, readiness gates, scope fence, and proof report
+- [AGENTS.md](AGENTS.md): guide and rules for any AI agent working in this repo ([CLAUDE.md](CLAUDE.md) imports it)
+
+---
+
+## Running the Backend API
+
+`@intentguard/server` is a local REST API over the IntentGuard engine. It binds to `localhost` only.
+
+```bash
+# Development (reloads on change)
+pnpm run dev:server
+
+# Production build
+pnpm run start:server
+```
+
+The API is served at **http://localhost:3848/api**. Set `INTENTGUARD_API_PORT` to change the port, and `INTENT_ROOT` to point it at another repository.
+
+| Method | Endpoint | Action |
+|---|---|---|
+| `GET` | `/api/health` | Liveness check |
+| `GET` | `/api/config` | `.intent/config.json` with defaults applied |
+| `GET` | `/api/agents` | Which agents have IntentGuard MCP config and rules installed |
+| `GET` | `/api/specs` | All specs, newest first, with readiness score and active flag |
+| `POST` | `/api/specs` | Draft a spec from `{ "request": "..." }` and make it active |
+| `GET` | `/api/specs/active` | The active spec |
+| `GET` | `/api/specs/:id` | One spec |
+| `POST` | `/api/specs/:id/activate` | Make a spec active |
+| `GET` | `/api/specs/:id/readiness` | 6-gate readiness score and blockers |
+| `GET` | `/api/specs/:id/questions` | Open questions for missing sections |
+| `POST` | `/api/specs/:id/scope-check` | Check `{ "filePath": "..." }` against the scope fence |
+| `POST` | `/api/specs/:id/verify` | Verify the git diff and save a proof report |
+| `GET` | `/api/specs/:id/report` | The latest saved proof report |
 
 ---
 
@@ -84,8 +127,9 @@ node packages/cli/dist/index.js <command>
 | `pnpm run cli -- verify [specId]` | Evaluates git diff against the scope fence and runs mapped tests |
 | `pnpm run cli -- report [specId]` | Formats and outputs the complete proof report |
 | `pnpm run cli -- commit [specId]` | Enforces verification before creating git commit with `[intent:{id}]` |
-| `pnpm run cli -- mcp setup --all` | Configures detected AI agents (Bob, Claude Code, Cursor, Codex) |
-| `pnpm run cli -- rules generate` | Generates `AGENTS.md`, `CLAUDE.md`, `.cursor/rules`, `.bob/rules.md` |
+| `pnpm run cli -- agents setup [--agent <id>]` | Writes MCP config and rules for all agents, or one (`claude`, `cursor`, `codex`, `bob`) |
+| `pnpm run cli -- mcp setup [--agent <id>]` | Writes MCP config only |
+| `pnpm run cli -- rules generate [--agent <id>]` | Refreshes the managed rule block in `AGENTS.md`, `CLAUDE.md`, `.bob/rules.md` |
 
 ### Try It Now: Verify the Demo Specs
 
@@ -102,22 +146,26 @@ pnpm run cli -- report intent-demo-galaxium
 
 ---
 
-## Running the MCP Server for AI Agents
+## Configuring AI Agents
 
 The Model Context Protocol (MCP) server allows AI agents (IBM Bob 2.0, Claude Code, Cursor, Codex) to invoke IntentGuard tools natively via `stdio`.
 
 ### 1. Auto-configure Agents (Recommended)
 
 ```bash
-pnpm run cli -- mcp setup --all
-pnpm run cli -- rules generate
+pnpm run agents:setup
 ```
 
-This automatically writes the proper configuration files:
-- **Claude Code**: `~/.claude/mcp_servers.json`
-- **Cursor**: `.cursor/mcp.json`
-- **IBM Bob 2.0**: `.bob/mcp.json` and `.bob/rules.md`
-- **Codex**: `.codex/mcp.json`
+Each agent only reads MCP config from its own fixed location, so the files cannot share one folder. Instead, every agent is defined once in `packages/core/src/agents/`, and `agents:setup` generates the files each agent expects:
+
+| Agent | MCP config (generated, git-ignored) | Rules |
+|---|---|---|
+| **Claude Code** | `.mcp.json` | `CLAUDE.md` (imports `AGENTS.md`) |
+| **Cursor** | `.cursor/mcp.json` | `AGENTS.md` |
+| **OpenAI Codex** | `.codex/config.toml` | `AGENTS.md` |
+| **IBM Bob 2.0** | `.bob/mcp.json` | `AGENTS.md` + `.bob/rules.md` |
+
+Setup is safe to re-run. It merges into existing MCP configs without removing your other servers. In rule files it only rewrites the block between the `<!-- intentguard:start -->` and `<!-- intentguard:end -->` markers, so hand-written content is kept.
 
 ### 2. Manual Agent Configuration Example
 
@@ -149,7 +197,7 @@ This automatically writes the proper configuration files:
 
 ## Running Automated Tests
 
-Run the Vitest test suite for `@intentguard/core`:
+Run the Vitest test suites for `@intentguard/core` and `@intentguard/server`:
 
 ```bash
 # Run all unit tests
@@ -166,16 +214,19 @@ pnpm --filter @intentguard/core run test:watch
 ```
 IntentGuard/
 ├── packages/
-│   ├── core/          # IntentSpec engine, 6-gate readiness scorer, scope fence, verifier
+│   ├── core/          # IntentSpec engine, readiness gates, scope fence, verifier, agent registry
+│   ├── server/        # REST API over core (port 3848)
 │   ├── mcp-server/    # Model Context Protocol stdio server exposing 8 tools
 │   ├── cli/           # `intent` binary implementation
 │   └── web/           # Next.js 15 App Router local dashboard (port 3847)
 ├── .intent/           # Local versioned intent store (specs, reports, config.json)
-├── AGENTS.md          # Universal multi-agent rule specification
-├── CLAUDE.md          # Claude Code rule file
-├── .cursor/rules/     # Cursor rule file (.mdc)
-└── .bob/rules.md      # IBM Bob 2.0 parallel subagent workflow rules
+├── AGENTS.md          # Guide and IntentGuard rules for every AI agent
+├── CLAUDE.md          # Claude Code entry point (imports AGENTS.md)
+├── INTENT.md          # Intent methodology: IntentSpec, gates, scope fence, proof
+└── PRD.md             # Product requirements
 ```
+
+Agent MCP configs (`.mcp.json`, `.cursor/`, `.codex/`, `.bob/`) are generated by `pnpm run agents:setup` and are not committed.
 
 ## The Three Engineering Layers
 

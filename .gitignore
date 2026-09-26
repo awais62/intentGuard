@@ -30,3 +30,10 @@ coverage/
 
 # IntentGuard local data (specs are committed, but local state is not)
 .intent/active.json
+
+# AI agent integrations: generated from packages/core/src/agents by `pnpm agents:setup`.
+# Each agent only reads its own fixed path, so these cannot share a folder.
+.mcp.json
+.cursor/
+.codex/
+.bob/

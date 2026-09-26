@@ -22,6 +22,11 @@ export * from './llm/provider.js';
 // Avoid exposing templates directly if not needed, but prompt asks to export them if possible
 export * from './llm/templates.js';
 
+export * from './workflow/draft.js';
+
+export * from './agents/registry.js';
+export * from './agents/rules.js';
+
 export * from './utils/git.js';
 export * from './utils/id.js';
 export * from './utils/markdown.js';
