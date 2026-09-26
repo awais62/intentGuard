@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "intentguard": {
+      "command": "npx",
+      "args": [
+        "@intentguard/mcp-server"
+      ]
+    }
+  }
+}

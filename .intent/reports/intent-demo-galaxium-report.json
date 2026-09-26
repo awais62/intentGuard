@@ -1,0 +1,42 @@
+{
+  "specId": "intent-demo-galaxium",
+  "timestamp": 1790398278,
+  "verification": {
+    "passed": false,
+    "scopeViolations": [],
+    "outcomesChecked": [
+      {
+        "outcome": "Interactive cabin seat map renders within 300ms of booking step 2",
+        "status": "untested"
+      },
+      {
+        "outcome": "Seat selection state is preserved and locked for 10 minutes",
+        "status": "untested"
+      },
+      {
+        "outcome": "Selected seat number appears on booking confirmation receipt and ticket",
+        "status": "untested"
+      }
+    ],
+    "healthMetricsChecked": [
+      {
+        "metric": "Booking completion rate remains above 78%",
+        "status": "unknown",
+        "details": "Manual review required"
+      },
+      {
+        "metric": "API response time p95 stays below 250ms for seat map queries",
+        "status": "unknown",
+        "details": "Manual review required"
+      },
+      {
+        "metric": "Zero regressions in existing cargo booking flow",
+        "status": "unknown",
+        "details": "Manual review required"
+      }
+    ],
+    "testsRun": []
+  },
+  "summary": "Verification failed. Review scope violations and untested outcomes.",
+  "commitReady": false
+}

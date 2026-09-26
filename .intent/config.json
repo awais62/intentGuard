@@ -1,0 +1,7 @@
+{
+  "projectName": "intentguard",
+  "llmProvider": "auto",
+  "readinessThreshold": 70,
+  "specDir": ".intent/specs",
+  "reportDir": ".intent/reports"
+}

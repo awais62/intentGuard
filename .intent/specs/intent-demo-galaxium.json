@@ -1,0 +1,75 @@
+{
+  "id": "intent-demo-galaxium",
+  "status": "approved",
+  "version": 1,
+  "createdAt": 1727325000,
+  "updatedAt": 1727325500,
+  "rawRequest": "add seat selection to interstellar booking",
+  "objective": "Travelers currently cannot select cabin seats during the interstellar booking flow, resulting in customer service overhead and a 24% drop-off at checkout.",
+  "problemSeverity": "high",
+  "userGoal": "Select and reserve an available cabin seat before finalizing payment.",
+  "outcomes": [
+    "Interactive cabin seat map renders within 300ms of booking step 2",
+    "Seat selection state is preserved and locked for 10 minutes",
+    "Selected seat number appears on booking confirmation receipt and ticket"
+  ],
+  "evidence": [
+    {
+      "id": "ev-ticket-1092",
+      "type": "friction",
+      "source": "Support Ticket #1092",
+      "excerpt": "I was assigned a windowless lower-deck bunk without being asked. I needed an observation deck seat.",
+      "trust": "high",
+      "anchors": ["objective"]
+    },
+    {
+      "id": "ev-metric-checkout",
+      "type": "metric",
+      "source": "Galaxium Analytics Dashboard",
+      "excerpt": "24% checkout abandonment observed on step 2 when seat assignment is automated.",
+      "trust": "high",
+      "anchors": ["objective", "outcome:0"]
+    }
+  ],
+  "constraints": [
+    "Must not modify core billing or pricing calculation engines",
+    "Must preserve backwards compatibility with single-cabin cargo vessels",
+    "Cannot use third-party CDN libraries — all assets must be bundled locally"
+  ],
+  "scope": {
+    "inScope": [
+      "src/booking/seats/**",
+      "src/components/CabinMap.tsx",
+      "src/types/booking.ts"
+    ],
+    "outOfScope": [
+      "src/billing/**",
+      "src/auth/**",
+      "src/engine/propulsion/**",
+      "config/secrets/**"
+    ]
+  },
+  "edgeCases": [
+    {
+      "id": "ec-concurrent-hold",
+      "scenario": "Two travelers select the same luxury suite simultaneously",
+      "expectedBehavior": "First hold transaction succeeds; second traveler receives real-time seat unavailable notification and map refreshes."
+    },
+    {
+      "id": "ec-timeout",
+      "scenario": "Seat hold timer expires after 10 minutes without checkout",
+      "expectedBehavior": "Seat is returned to available pool and customer is prompted to extend or re-select."
+    }
+  ],
+  "healthMetrics": [
+    "Booking completion rate remains above 78%",
+    "API response time p95 stays below 250ms for seat map queries",
+    "Zero regressions in existing cargo booking flow"
+  ],
+  "verification": [
+    "Unit test for CabinMap component rendering all 3 vessel tiers",
+    "Integration test for concurrency conflict resolution on seat hold",
+    "End-to-end checkout flow confirms seat assignment persisted in booking record"
+  ],
+  "readinessScore": 100
+}
