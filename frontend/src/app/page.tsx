@@ -26,10 +26,10 @@ export default async function HomePage() {
   const score = Math.round(activeSpec?.readinessScore ?? 0);
 
   const total = allSpecs.length;
-  const ready = allSpecs.filter(s => (s.readinessScore ?? 0) >= 70).length;
-  const average = total ? Math.round(allSpecs.reduce((sum, s) => sum + (s.readinessScore ?? 0), 0) / total) : 0;
-  const delivered = allSpecs.filter(s => s.status === 'shipped' || s.status === 'verified').length;
-  const counts = Object.fromEntries(STATUSES.map(status => [status, allSpecs.filter(s => s.status === status).length])) as Record<
+  const ready = allSpecs.filter((s: Spec) => (s.readinessScore ?? 0) >= 70).length;
+  const average = total ? Math.round(allSpecs.reduce((sum, s: Spec) => sum + (s.readinessScore ?? 0), 0) / total) : 0;
+  const delivered = allSpecs.filter((s: Spec) => s.status === 'shipped' || s.status === 'verified').length;
+  const counts = Object.fromEntries(STATUSES.map(status => [status, allSpecs.filter((s: Spec) => s.status === status).length])) as Record<
     Spec['status'],
     number
   >;
