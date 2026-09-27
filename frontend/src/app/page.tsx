@@ -9,7 +9,7 @@ import { cn } from '@/lib/utils';
 
 export const dynamic = 'force-dynamic';
 
-const STEP_BY_STATUS = { draft: 2, validated: 2, approved: 3, shipped: 4, verified: 5 } as const;
+const STEP_BY_STATUS: Record<string, number> = { draft: 2, validated: 2, approved: 3, shipped: 4, verified: 5 };
 const STATUSES = ['draft', 'validated', 'approved', 'shipped', 'verified'] as const;
 const STATUS_BAR: Record<Spec['status'], string> = {
   draft: 'bg-slate-400',
@@ -20,19 +20,19 @@ const STATUS_BAR: Record<Spec['status'], string> = {
 };
 
 export default async function HomePage() {
-  const [active, allSpecs, workspaces] = await Promise.all([getActiveSpec(), getAllSpecs(), getWorkspaces()]);
+  const [active, rawSpecs, workspaces] = await Promise.all([getActiveSpec(), getAllSpecs(), getWorkspaces()]);
+  const allSpecs: Spec[] = rawSpecs;
   // The list carries the live readiness score; the active endpoint returns the stored spec
-  const activeSpec = active ? (allSpecs.find((s: Spec) => s.id === active.id) ?? active) : null;
-  const score = Math.round(activeSpec?.readinessScore ?? 0);
+  const activeSpec: Spec | null = active ? (allSpecs.find((s: Spec) => s.id === active.id) ?? active) : null;
+  const score: number = Math.round(activeSpec?.readinessScore ?? 0);
 
-  const total = allSpecs.length;
-  const ready = allSpecs.filter((s: Spec) => (s.readinessScore ?? 0) >= 70).length;
-  const average = total ? Math.round(allSpecs.reduce((sum: number, s: Spec) => sum + (s.readinessScore ?? 0), 0) / total) : 0;
-  const delivered = allSpecs.filter((s: Spec) => s.status === 'shipped' || s.status === 'verified').length;
-  const counts = Object.fromEntries(STATUSES.map((status: Spec['status']) => [status, allSpecs.filter((s: Spec) => s.status === status).length])) as Record<
-    Spec['status'],
-    number
-  >;
+  const total: number = allSpecs.length;
+  const ready: number = allSpecs.filter((s: Spec) => (s.readinessScore ?? 0) >= 70).length;
+  const average: number = total ? Math.round(allSpecs.reduce((sum: number, s: Spec) => sum + (s.readinessScore ?? 0), 0) / total) : 0;
+  const delivered: number = allSpecs.filter((s: Spec) => s.status === 'shipped' || s.status === 'verified').length;
+  const counts = Object.fromEntries(
+    STATUSES.map((status: Spec['status']) => [status, allSpecs.filter((s: Spec) => s.status === status).length])
+  ) as Record<Spec['status'], number>;
 
   const stats = [
     { label: 'Specs', value: total, icon: Layers, hint: 'in .intent/specs' },
