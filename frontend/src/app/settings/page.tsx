@@ -1,5 +1,5 @@
 import { Settings as SettingsIcon, Terminal, Database, Server } from 'lucide-react';
-import { getAgents, getConfig, getProviders } from '@/lib/api';
+import { getAgents, getConfig, getProviders, type ProviderStatus, type AgentStatus } from '@/lib/api';
 
 export const dynamic = 'force-dynamic';
 
@@ -22,7 +22,7 @@ export default async function SettingsPage() {
             <Database className="w-5 h-5 text-slate-500" /> Chat Model Providers
           </h2>
           <div className="space-y-4">
-            {providers.providers.map(provider => (
+            {providers.providers.map((provider: ProviderStatus) => (
               <div key={provider.id} className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-800/50 rounded-lg">
                 <div>
                   <div className="font-medium">
@@ -45,7 +45,7 @@ export default async function SettingsPage() {
             <Terminal className="w-5 h-5 text-slate-500" /> AI Coding Agents
           </h2>
           <div className="space-y-4">
-            {agents.map(agent => (
+            {agents.map((agent: AgentStatus) => (
               <div key={agent.id} className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-800/50 rounded-lg">
                 <div>
                   <div className="font-medium">{agent.name}</div>
