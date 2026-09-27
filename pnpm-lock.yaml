@@ -110,25 +110,6 @@ importers:
       '@intentguard/core':
         specifier: workspace:*
         version: link:../backend/core
-      clsx:
-        specifier: ^2.1.1
-        version: 2.1.1
-      lucide-react:
-        specifier: ^0.475.0
-        version: 0.475.0(react@19.3.0)
-      next:
-        specifier: ^15.1.0
-        version: 15.5.26(@types/node@22.20.4)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
-      react:
-        specifier: ^19.0.0
-        version: 19.3.0
-      react-dom:
-        specifier: ^19.0.0
-        version: 19.3.0(react@19.3.0)
-      tailwind-merge:
-        specifier: ^3.0.0
-        version: 3.7.0
-    devDependencies:
       '@types/node':
         specifier: ^22.0.0
         version: 22.20.4
@@ -141,9 +122,27 @@ importers:
       autoprefixer:
         specifier: ^10.4.20
         version: 10.6.1(postcss@8.5.28)
+      clsx:
+        specifier: ^2.1.1
+        version: 2.1.1
+      lucide-react:
+        specifier: ^0.475.0
+        version: 0.475.0(react@19.3.0)
+      next:
+        specifier: ^15.1.0
+        version: 15.5.26(@types/node@22.20.4)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
       postcss:
         specifier: ^8.5.1
         version: 8.5.28
+      react:
+        specifier: ^19.0.0
+        version: 19.3.0
+      react-dom:
+        specifier: ^19.0.0
+        version: 19.3.0(react@19.3.0)
+      tailwind-merge:
+        specifier: ^3.0.0
+        version: 3.7.0
       tailwindcss:
         specifier: ^3.4.17
         version: 3.4.19(tsx@4.23.15)
