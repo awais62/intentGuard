@@ -22,7 +22,7 @@ const STATUS_BAR: Record<Spec['status'], string> = {
 export default async function HomePage() {
   const [active, allSpecs, workspaces] = await Promise.all([getActiveSpec(), getAllSpecs(), getWorkspaces()]);
   // The list carries the live readiness score; the active endpoint returns the stored spec
-  const activeSpec = active ? (allSpecs.find(s => s.id === active.id) ?? active) : null;
+  const activeSpec = active ? (allSpecs.find((s: Spec) => s.id === active.id) ?? active) : null;
   const score = Math.round(activeSpec?.readinessScore ?? 0);
 
   const total = allSpecs.length;
