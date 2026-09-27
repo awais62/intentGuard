@@ -11,7 +11,7 @@ export const dynamic = 'force-dynamic';
 
 const STEP_BY_STATUS: Record<string, number> = { draft: 2, validated: 2, approved: 3, shipped: 4, verified: 5 };
 const STATUSES = ['draft', 'validated', 'approved', 'shipped', 'verified'] as const;
-const STATUS_BAR: Record<Spec['status'], string> = {
+const STATUS_BAR: Record<string, string> = {
   draft: 'bg-slate-400',
   validated: 'bg-blue-500',
   approved: 'bg-purple-500',
