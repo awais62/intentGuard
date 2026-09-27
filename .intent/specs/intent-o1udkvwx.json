@@ -1,0 +1,150 @@
+{
+  "id": "intent-o1udkvwx",
+  "status": "approved",
+  "objective": "Make API request failures easier to diagnose and less inconsistent. Today the dashboard's three API client modules each handle failure differently: frontend/src/lib/api.ts throws a typed BackendOfflineError for transport failure and a plain Error for non-2xx, frontend/src/lib/chat-client.ts throws plain Errors with hand-written messages, and frontend/src/lib/workspace-client.ts does the same with yet another message (it tells the developer to run `pnpm dev:app` while api.ts says `pnpm dev:server`). On the server side, backend/server/src/app.ts only logs unexpected errors ('Internal server error' at line 313) and logs nothing at all for 4xx/5xx responses raised by handlers, so a failing request leaves no trace. If nothing changes, every failure a developer or user hits is either silently swallowed or reported with a message that varies by call site.",
+  "outcomes": [
+    "All dashboard API failures go through one typed error that carries the HTTP status and the backend's error message, thrown consistently by frontend/src/lib/api.ts, chat-client.ts and workspace-client.ts",
+    "A failure to reach the backend still throws the existing BackendOfflineError from api.ts so app/error.tsx keeps rendering the 'backend did not answer' page",
+    "Every non-2xx API response is logged once on the server with method, path, status and message",
+    "A non-JSON or empty error body no longer produces a message that is an object or undefined; the thrown message is always a non-empty string"
+  ],
+  "evidence": [
+    {
+      "id": "ev-1",
+      "type": "request",
+      "excerpt": "Improve the error handling and logging for API requests.",
+      "anchors": [
+        "objective"
+      ]
+    },
+    {
+      "id": "ev-file-0",
+      "type": "observation",
+      "excerpt": "Gathered file evidence: frontend/src/app/layout.tsx",
+      "anchors": [
+        "objective"
+      ]
+    },
+    {
+      "id": "ev-file-1",
+      "type": "observation",
+      "excerpt": "Gathered file evidence: utils/format.ts",
+      "anchors": [
+        "objective"
+      ]
+    },
+    {
+      "id": "ev-mujv4ffo-0",
+      "type": "observation",
+      "excerpt": "class BackendOfflineError extends Error { ... } / if (!res.ok) { const body = (await res.json().catch(() => ({}))) as { error?: string }; throw new Error(body.error ?? `The backend answered ${res.status} for ${path}`) }",
+      "source": "frontend/src/lib/api.ts"
+    },
+    {
+      "id": "ev-mujv4ffo-1",
+      "type": "observation",
+      "excerpt": "throw new Error(`Cannot reach the IntentGuard backend at ${API_URL}. Start it with: pnpm dev:server`) vs workspace-client.ts: `... pnpm dev:app` — same situation, two different instructions and two different error types",
+      "source": "frontend/src/lib/chat-client.ts"
+    },
+    {
+      "id": "ev-mujv4ffo-2",
+      "type": "observation",
+      "excerpt": "if (!res.ok) { const data = await res.json().catch(() => ({})); throw new Error(data.error ?? `Request failed (${res.status})`) } — data is untyped, so a JSON error body without an `error` string yields a status-only message",
+      "source": "frontend/src/lib/chat-client.ts"
+    },
+    {
+      "id": "ev-mujv4ffo-3",
+      "type": "observation",
+      "excerpt": "app.onError((err, c) => { if (err instanceof HTTPException) return c.json({ error: err.message }, err.status); console.error('[intentguard-server]', err); return c.json({ error: 'Internal server error' }, 500) }) — HTTPException paths (400/404/409/502...) return without any log line",
+      "source": "backend/server/src/app.ts"
+    },
+    {
+      "id": "ev-mujv4ffo-4",
+      "type": "observation",
+      "excerpt": "Production builds hide error messages, so the advice is static — the error page currently tells the user to run `pnpm dev:server`",
+      "source": "frontend/src/app/error.tsx"
+    },
+    {
+      "id": "ev-mujv4ffo-5",
+      "type": "observation",
+      "excerpt": "\"test\": \"pnpm --filter @intentguard/core --filter @intentguard/server --filter @intentguard/mcp-server test\" — frontend has no test script and no test runner configured",
+      "source": "package.json"
+    },
+    {
+      "id": "ev-mujv4ffo-6",
+      "type": "observation",
+      "excerpt": "get() retries GET requests 6 times x 600ms before throwing BackendOfflineError; chat-client.ts post() and workspace-client.ts post() make a single attempt — inconsistent retry behaviour raises a question about whether POSTs should retry",
+      "source": "frontend/src/lib/api.ts"
+    }
+  ],
+  "scope": {
+    "inScope": [
+      "frontend/src/lib/api.ts",
+      "frontend/src/lib/chat-client.ts",
+      "frontend/src/lib/workspace-client.ts",
+      "backend/server/src/app.ts",
+      "backend/server/test/**"
+    ],
+    "outOfScope": [
+      "backend/core/src/llm/**",
+      "backend/core/src/**",
+      "backend/cli/**",
+      "mcp/**",
+      "frontend/src/app/**",
+      "frontend/src/components/**",
+      "utils/format.ts",
+      "scripts/**"
+    ]
+  },
+  "edgeCases": [
+    {
+      "scenario": "Backend unreachable (server not started)",
+      "expectedBehavior": "Unchanged behaviour: BackendOfflineError from api.ts so app/error.tsx renders the restart instructions; chat/workspace clients still surface an actionable 'cannot reach the backend' message"
+    },
+    {
+      "scenario": "Non-2xx response whose body is empty, HTML, or JSON without an `error` string",
+      "expectedBehavior": "Thrown error still has a useful, non-empty message containing the status and request path; no 'undefined' or '[object Object]'"
+    },
+    {
+      "scenario": "404 or 400 from api.ts GET (existing contract: treated as null)",
+      "expectedBehavior": "Still returns null rather than throwing, so 'not found' pages keep working"
+    },
+    {
+      "scenario": "Client aborts a chat request via AbortSignal",
+      "expectedBehavior": "AbortError propagates unchanged and is not wrapped or logged as a failure"
+    },
+    {
+      "scenario": "Server handler throws a plain Error (unexpected bug)",
+      "expectedBehavior": "Logged once with method, path, error message and stack, and the client still receives { error: 'Internal server error' } with status 500"
+    },
+    {
+      "scenario": "Malformed JSON request body",
+      "expectedBehavior": "400 { error: 'Request body must be JSON' } as today, with the log line showing the route and status"
+    }
+  ],
+  "constraints": [
+    "The error page contract in frontend/src/app/error.tsx (BackendOfflineError => 'backend did not answer') must keep working",
+    "No API keys, request bodies or user message content may be written to logs (see SECURITY.md and scripts/check-pii.mjs)",
+    "No new runtime dependency; no new logging library (the repo uses console.error with a [intentguard-server] / [intentguard] prefix)",
+    "Existing HTTP status codes and JSON response shapes ({\"error\": \"...\"}) must stay the same",
+    "api.ts GET retry behaviour (6 attempts, ~3s) is a UX requirement and must not change"
+  ],
+  "healthMetrics": [
+    "`pnpm test` (core + server + mcp vitest suites) stays green",
+    "`pnpm run lint` and `pnpm run build` stay green",
+    "Existing assertion in backend/server/test/app.test.ts on 404/400 statuses and JSON shapes keeps passing",
+    "No new `console.log` noise on successful requests — request logging is limited to failures",
+    "No secret or message content appears in log output (scripts/check-pii.mjs --all passes)"
+  ],
+  "verification": [
+    "run_check test (pnpm test): existing backend/server/test/app.test.ts and workspaces.test.ts must still pass",
+    "New backend/server/test case: a request that triggers an HTTPException (e.g. POST /api/specs with {}) logs one [intentguard-server] line containing method, path and status, and still returns 400",
+    "New backend/server/test case: an unexpected thrown error returns 500 { error: 'Internal server error' } and logs the error",
+    "run_check lint and run_check build",
+    "Manual: with the server stopped, load the dashboard and confirm app/error.tsx still shows the 'backend did not answer' advice",
+    "Manual: stop the server, send a chat message, confirm the failure message is the single shared wording"
+  ],
+  "createdAt": 1790516184,
+  "updatedAt": 1790516223,
+  "rawRequest": "Improve the error handling and logging for API requests.",
+  "userGoal": "Understand quickly why an API request failed (which call, which status, what the backend said) instead of seeing unrelated or missing messages, both in the dashboard and in the server console."
+}

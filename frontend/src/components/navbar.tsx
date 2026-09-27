@@ -38,7 +38,7 @@ export default async function Navbar() {
           <NavLinks />
           <div className="h-4 w-px bg-slate-200 dark:bg-slate-800 mx-2" />
           <a
-            href={current?.remote?.startsWith('https://') ? current.remote.replace(/\.git$/, '') : 'https://github.com/awaisaziz/IntentGuard'}
+            href={current?.remote?.startsWith('https://') ? current.remote.replace(/\.git$/, '') : 'https://github.com/awais62/intentGuard'}
             target="_blank"
             rel="noreferrer"
             title="Open the repository on GitHub"

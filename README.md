@@ -41,7 +41,7 @@ pnpm --version   # 8.x.x or higher
 IntentGuard lives in its own folder, separate from any project you apply it to.
 
 ```bash
-git clone https://github.com/awaisaziz/IntentGuard.git
+git clone https://github.com/awais62/intentGuard.git
 cd IntentGuard
 pnpm install   # installs all packages and enables the pre-commit PII scan hook
 pnpm build     # compiles core → server → mcp-server → cli → web

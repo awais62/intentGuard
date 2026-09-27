@@ -1,0 +1,118 @@
+{
+  "id": "intent-dmi4q11h",
+  "status": "approved",
+  "objective": "Provide a reusable date-formatting helper so any part of the codebase can render a date as DD/MM/YYYY consistently, instead of each call site hand-rolling its own formatting (which today does not exist anywhere: a search for \"format\" in frontend/src returns no matches). Without it, every future date display risks inconsistent day/month ordering and missing zero-padding.",
+  "outcomes": [
+    "A new format.ts exists at the agreed location, containing an exported date-formatting function.",
+    "Given 2024-03-05 (5 March 2024), the helper returns the string \"05/03/2024\" (zero-padded day and month).",
+    "The helper accepts the input type(s) the developer confirms (Date object and/or ISO string).",
+    "The file type-checks under the workspace tsconfig with no new lint errors."
+  ],
+  "evidence": [
+    {
+      "id": "ev-1",
+      "type": "request",
+      "excerpt": "Add a utility helper function in a new file utils/format.ts to format dates as DD/MM/YYYY.",
+      "anchors": [
+        "objective"
+      ]
+    },
+    {
+      "id": "ev-file-0",
+      "type": "observation",
+      "excerpt": "Gathered file evidence: frontend/src/app/layout.tsx",
+      "anchors": [
+        "objective"
+      ]
+    },
+    {
+      "id": "ev-mujuwx6p-0",
+      "type": "observation",
+      "excerpt": "Listed repo root: there is no top-level utils/ directory. Candidate homes are frontend/src/lib/ (has utils.ts) and backend/core/src/utils/ (git.ts, home.ts, id.ts, markdown.ts).",
+      "source": "repo root listing"
+    },
+    {
+      "id": "ev-mujuwx6p-1",
+      "type": "quote",
+      "excerpt": "In frontend/, only the chat page (frontend/src/app/chat, frontend/src/components/chat, frontend/src/lib/chat-client.ts) is live. Do not change the other dashboard pages unless the developer explicitly asks; they still run on mock data.",
+      "source": "AGENTS.md"
+    },
+    {
+      "id": "ev-mujuwx6p-2",
+      "type": "observation",
+      "excerpt": "Existing frontend util is frontend/src/lib/utils.ts exporting cn(); it imports via the @/* alias. Frontend tsconfig maps @/* to ./src/*.",
+      "source": "frontend/src/lib/utils.ts, frontend/tsconfig.json"
+    },
+    {
+      "id": "ev-mujuwx6p-3",
+      "type": "observation",
+      "excerpt": "Frontend package has no test script or test runner (only dev/build/start/lint). Vitest is configured for backend/core, backend/server and mcp; root test script filters those three packages only.",
+      "source": "frontend/package.json, package.json"
+    },
+    {
+      "id": "ev-mujuwx6p-4",
+      "type": "observation",
+      "excerpt": "AGENTS.md conventions: ESM throughout, relative TS imports use the .js suffix, and tests are added next to the changed package (backend/<pkg>/test).",
+      "source": "AGENTS.md"
+    },
+    {
+      "id": "ev-mujuwx6p-5",
+      "type": "friction",
+      "excerpt": "Request names \"utils/format.ts\" but no such directory exists at the repo root; the target location is ambiguous and must be confirmed by the developer.",
+      "source": "search: utils"
+    }
+  ],
+  "scope": {
+    "inScope": [
+      "utils/format.ts"
+    ],
+    "outOfScope": [
+      "frontend/src/app/**",
+      "frontend/src/components/**",
+      "frontend/src/lib/api.ts",
+      "backend/**",
+      "mcp/**",
+      "scripts/**",
+      ".intent/**"
+    ]
+  },
+  "edgeCases": [
+    {
+      "scenario": "Invalid date input (e.g. new Date(\"nonsense\") or an unparseable string)",
+      "expectedBehavior": "Developer to confirm: return an empty string, return \"Invalid Date\", or throw. Not assumed."
+    },
+    {
+      "scenario": "Day or month is a single digit (e.g. 9 January 2024)",
+      "expectedBehavior": "Zero-padded to two digits: \"09/01/2024\"."
+    },
+    {
+      "scenario": "Date near midnight in different timezones",
+      "expectedBehavior": "Developer to confirm whether to format in local time or UTC — affects the resulting day."
+    },
+    {
+      "scenario": "No argument / null / undefined",
+      "expectedBehavior": "Developer to confirm: rely on TypeScript's type check only, or add a runtime guard."
+    }
+  ],
+  "constraints": [
+    "ESM throughout; TypeScript. Backend/core relative imports use the .js suffix, frontend uses the @/* path alias.",
+    "Do not add new runtime dependencies (no date library); use the platform Date API.",
+    "Do not change existing dashboard pages in frontend/ — only the chat page is live per AGENTS.md.",
+    "Logic placed per repo convention; no changes to unrelated modules."
+  ],
+  "healthMetrics": [
+    "Existing tests (pnpm test across core/server/mcp) keep passing.",
+    "pnpm build and pnpm lint keep passing.",
+    "No new TypeScript errors introduced."
+  ],
+  "verification": [
+    "Type-check the new file (frontend: pnpm --filter @intentguard/web build / tsc; backend: package build).",
+    "Confirm the output for a known date, e.g. 2024-03-05 -> \"05/03/2024\", via a unit test or a manual run.",
+    "Run pnpm test to confirm no existing tests regress.",
+    "Run pnpm run lint and pnpm run build."
+  ],
+  "createdAt": 1790515846,
+  "updatedAt": 1790515871,
+  "rawRequest": "Add a utility helper function in a new file utils/format.ts to format dates as DD/MM/YYYY.",
+  "userGoal": "A single importable helper that turns a date into a zero-padded DD/MM/YYYY string, placed in a new format.ts utility file."
+}

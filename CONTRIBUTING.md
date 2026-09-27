@@ -7,7 +7,7 @@ the privacy rules every contribution must respect.
 ## Getting started
 
 ```bash
-git clone https://github.com/awaisaziz/IntentGuard.git
+git clone https://github.com/awais62/intentGuard.git
 cd IntentGuard
 pnpm install          # also enables the pre-commit PII/secret scan
 pnpm build            # core builds first; the MCP server and CLI depend on it
